@@ -16,6 +16,7 @@
     "app.*",
     "os.*",
     "window.*",
+    "storage.*",
     "debug.log"
   ],
   "globalVariables": {

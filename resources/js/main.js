@@ -1,14 +1,48 @@
-// This is just a sample app. You can structure your Neutralinojs app code as you wish.
-// This example app is written with vanilla JavaScript and HTML.
-// Feel free to use any frontend framework you like :)
-// See more details: https://neutralino.js.org/docs/how-to/use-a-frontend-library
-
-function openDocs() {
-    Neutralino.os.open("https://neutralino.js.org/docs");
+function getCredentials() {
+    return new Promise((resolve, reject) => {
+        let usernamePromise = Neutralino.storage.getData("username");
+        let passwordPromise = Neutralino.storage.getData("password");
+        Promise
+            .all([usernamePromise,  passwordPromise])
+            .then(results => resolve(
+                {
+                    username: results[0],
+                    password: results[1]
+                }
+            ))
+            .catch(reject);
+    });
 }
 
-function openTutorial() {
-    Neutralino.os.open("https://www.youtube.com/watch?v=txDlNNsgSh8&list=PLvTbqpiPhQRb2xNQlwMs0uVV0IN8N-pKj");
+function loadCredentials() {    
+    getCredentials()
+    .then(credentials => {
+        document.getElementById('loginuserid').value = decodeURIComponent(credentials.username);
+        document.getElementById('loginpassword').value = decodeURIComponent(credentials.password);
+    })
+    .catch(() => {
+        document.getElementById('loginuserid').value = "";
+        document.getElementById('loginpassword').value = "";
+    });
+}
+
+function setCredentials(credentials) {
+    return new Promise((resolve, reject) => {
+        let usernamePromise = Neutralino.storage.setData("username", credentials.username);
+        let passwordPromise = Neutralino.storage.setData("password", credentials.password);
+        Promise
+            .all([usernamePromise, passwordPromise])
+            .then(resolve)
+            .catch(reject);
+    });
+}
+loadCredentials();
+
+document.getElementById('save').onclick = () => {
+    setCredentials({
+        username: encodeURIComponent(document.getElementById('loginuserid').value),
+        password: encodeURIComponent(document.getElementById('loginpassword').value)
+    })
 }
 
 function setTray() {
@@ -29,11 +63,8 @@ function setTray() {
 
 function onTrayMenuItemClicked(event) {
     switch(event.detail.id) {
-        case "VERSION":
-            Neutralino.os.showMessageBox("Version information",
-                `Neutralinojs server: v${NL_VERSION} | Neutralinojs client: v${NL_CVERSION}`);
-            break;
         case "SHOW":
+            loadCredentials();
             Neutralino.window.show();
             break;
         case "QUIT":
